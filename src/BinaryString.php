@@ -5,6 +5,12 @@ namespace alcamo\binary_data;
 use alcamo\exception\{OutOfRange, Unsupported};
 
 /**
+ * @namespace alcamo::binary_data
+ *
+ * @brief Simple classes the model binary data, in particular BCD
+ */
+
+/**
  * @brief Array of bytes that represents binary content
  *
  * @date Last reviewed 2021-06-10
