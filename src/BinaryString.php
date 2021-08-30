@@ -76,7 +76,7 @@ class BinaryString implements \ArrayAccess, \Countable
     }
 
     /// Return representation as uppercase hex string
-    public function __toString()
+    public function __toString(): string
     {
         return strtoupper(bin2hex($this->data_));
     }
