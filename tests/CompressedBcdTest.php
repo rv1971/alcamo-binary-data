@@ -54,7 +54,7 @@ class CompressedBcdTest extends TestCase
     {
         $this->expectException(SyntaxError::class);
         $this->expectExceptionMessage(
-            "Syntax error in \"12A34567\" at 2: \"A34567\"; not a valid compressed BCD literal"
+            'Syntax error in "12A34567" at offset 2 ("A34567"); not a valid compressed BCD literal'
         );
 
         CompressedBcd::newFromString('12A34567');

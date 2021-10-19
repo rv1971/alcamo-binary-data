@@ -47,10 +47,12 @@ class CompressedBcd extends HexString
         $bareContent = rtrim($text, 'F');
 
         if (strspn($bareContent, '0123456789') != strlen($bareContent)) {
-            throw new SyntaxError(
-                $text,
-                strspn($text, '0123456789'),
-                '; not a valid compressed BCD literal'
+            throw (new SyntaxError())->setMessageContext(
+                [
+                    'inData' => $text,
+                    'atOffset' => strspn($text, '0123456789'),
+                    'extraMessage' => 'not a valid compressed BCD literal'
+                ]
             );
         }
 

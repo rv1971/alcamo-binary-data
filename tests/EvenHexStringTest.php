@@ -19,7 +19,7 @@ class EvenHexStringTest extends TestCase
     {
         $this->expectException(SyntaxError::class);
         $this->expectExceptionMessage(
-            "Syntax error in \"123AB\" at 0: \"123AB\"; not an even number of hex digits"
+            'Syntax error in "123AB"; not an even number of hex digits'
         );
 
         EvenHexString::newFromString('12 3A B');

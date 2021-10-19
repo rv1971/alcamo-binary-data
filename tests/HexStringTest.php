@@ -42,7 +42,7 @@ class HexStringTest extends TestCase
 
         $this->expectException(SyntaxError::class);
         $this->expectExceptionMessage(
-            "Syntax error in \"X\" at 0: \"X\"; not a valid hex digit"
+            'Syntax error in "X" at offset 0 ("X"); not a valid hex digit'
         );
 
         $hexString[1] = 'X';

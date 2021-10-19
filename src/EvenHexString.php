@@ -19,10 +19,11 @@ class EvenHexString extends HexString
         /** @throw alcamo::exception::SyntaxError if $text does not have an
          *  even number of digits. */
         if (strlen($text) & 1) {
-            throw new SyntaxError(
-                $text,
-                0,
-                '; not an even number of hex digits'
+            throw (new SyntaxError())->setMessageContext(
+                [
+                    'inData' => $text,
+                    'extraMessage' => 'not an even number of hex digits'
+                ]
             );
         }
 

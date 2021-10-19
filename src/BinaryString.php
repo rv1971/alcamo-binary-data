@@ -105,11 +105,13 @@ class BinaryString implements \ArrayAccess, \Countable
         if (!isset($this->data_[$offset])) {
             /** @throw alcamo::exception::OutOfRange if $offset outside of
              *  string */
-            throw new OutOfRange(
-                $offset,
-                0,
-                strlen($this->data_) - 1,
-                '; offset outside of given binary string'
+            throw (new OutOfRange())->setMessageContext(
+                [
+                    'value' => $offset,
+                    'lowerBound' => 0,
+                    'upperBound' => strlen($this->data_) - 1,
+                    'extraMessage' => 'offset outside of given binary string'
+                ]
             );
         }
 
@@ -121,7 +123,7 @@ class BinaryString implements \ArrayAccess, \Countable
             $value,
             0,
             0xff,
-            '; value does not represent a byte'
+            [ 'extraMessage' => 'value does not represent a byte' ]
         );
 
         $this->data_[$offset] = chr($value);
@@ -131,7 +133,9 @@ class BinaryString implements \ArrayAccess, \Countable
     public function offsetUnset($offset)
     {
         /** @throw alcamo::exception::Unsupported at every invocation. */
-        throw new Unsupported('Unsetting bytes in a binary string');
+        throw (new Unsupported())->setMessageContext(
+            [ 'feature' => 'Unsetting bytes in a binary string' ]
+        );
     }
 
     /* == operations == */
@@ -179,7 +183,7 @@ class BinaryString implements \ArrayAccess, \Countable
                     strlen($data),
                     0,
                     8,
-                    '; too long for conversion to integer'
+                    [ 'extraMessage' => 'too long for conversion to integer' ]
                 );
         }
     }

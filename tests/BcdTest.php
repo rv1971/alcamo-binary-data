@@ -54,7 +54,7 @@ class BcdTest extends TestCase
     {
         $this->expectException(SyntaxError::class);
         $this->expectExceptionMessage(
-            "Syntax error in \"12A34567\" at 2: \"A34567\"; not a valid integer literal"
+            'Syntax error in "12A34567" at offset 2 ("A34567"); not a valid integer literal'
         );
 
         Bcd::newFromString('12A34567');

@@ -50,10 +50,12 @@ class Bcd extends HexString
         if (strspn($text, '0123456789') != strlen($text)) {
             /** @throw alcamo::exception::SyntaxError if $text has content
              *  other than decimal digits and whitespace. */
-            throw new SyntaxError(
-                $text,
-                strspn($text, '0123456789'),
-                '; not a valid integer literal'
+            throw (new SyntaxError())->setMessageContext(
+                [
+                    'inData' => $text,
+                    'atOffset' => strspn($text, '0123456789'),
+                    'extraMessage' => 'not a valid integer literal'
+                ]
             );
         }
 
@@ -83,11 +85,13 @@ class Bcd extends HexString
 
         /** @throw alcamo::exception::OutOfRange if $content is too long to be
          *  represented as an integer. */
-        throw new OutOfRange(
-            $this,
-            0,
-            PHP_INT_MAX,
-            '; unable to convert BCD to integer'
+        throw (new OutOfRange())->setMessageContext(
+            [
+                'value' => $this,
+                'lowerBound' => 0,
+                'upperBound' => PHP_INT_MAX,
+                'extraMessage' => 'unable to convert BCD to integer'
+            ]
         );
     }
 

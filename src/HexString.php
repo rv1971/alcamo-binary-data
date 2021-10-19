@@ -28,7 +28,12 @@ class HexString extends StringObject
         if ($text != '' && !ctype_xdigit($text)) {
             /** @throw alcamo::exception::SyntaxError if $text has content
              *  other than hex digits and whitespace. */
-            throw new SyntaxError($text, null, '; not a valid hex string');
+            throw (new SyntaxError())->setMessageContext(
+                [
+                    'inData' => $text,
+                    'extraMessage' => 'not a valid hex string'
+                ]
+            );
         }
 
         return new static($text);
@@ -55,7 +60,13 @@ class HexString extends StringObject
         if (!ctype_xdigit($value) || strlen($value) > 1) {
             /** @throw alcamo::exception::SyntaxError if text is not exactly
              *  one hex digit. */
-            throw new SyntaxError($value, 0, '; not a valid hex digit');
+            throw (new SyntaxError())->setMessageContext(
+                [
+                    'inData' => $value,
+                    'atOffset' => 0,
+                    'extraMessage' => 'not a valid hex digit'
+                ]
+            );
         }
 
         parent::offsetSet($offset, $value);

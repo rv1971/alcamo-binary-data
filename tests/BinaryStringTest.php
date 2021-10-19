@@ -141,7 +141,7 @@ class BinaryStringTest extends TestCase
 
         $this->expectException(OutOfRange::class);
         $this->expectExceptionMessage(
-            'Value "2" out of range [0, 1]; offset outside of given binary string'
+            'Value 2 out of range [0, 1]; offset outside of given binary string'
         );
 
         $binString[2] = 0;
@@ -153,7 +153,7 @@ class BinaryStringTest extends TestCase
 
         $this->expectException(OutOfRange::class);
         $this->expectExceptionMessage(
-            'Value "256" out of range [0, 255]; value does not represent a byte'
+            'Value 256 out of range [0, 255]; value does not represent a byte'
         );
 
         $binString[1] = 256;
@@ -165,7 +165,7 @@ class BinaryStringTest extends TestCase
 
         $this->expectException(Unsupported::class);
         $this->expectExceptionMessage(
-            'Unsetting bytes in a binary string not supported'
+            '"Unsetting bytes in a binary string" not supported'
         );
 
         unset($binString[0]);
@@ -204,7 +204,7 @@ class BinaryStringTest extends TestCase
 
         $this->expectException(OutOfRange::class);
         $this->expectExceptionMessage(
-            'Value "12" out of range [0, 8]; too long for conversion to integer'
+            'Value 12 out of range [0, 8]; too long for conversion to integer'
         );
 
         $binString->toInt();
