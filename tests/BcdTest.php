@@ -72,7 +72,8 @@ class BcdTest extends TestCase
     {
         $this->expectException(OutOfRange::class);
         $this->expectExceptionMessage(
-            'Value "' . PHP_INT_MAX . '0" out of range [0, ' . PHP_INT_MAX
+            'Value <alcamo\binary_data\Bcd>"' . PHP_INT_MAX
+            . '0" out of range [0, ' . PHP_INT_MAX
             . ']; unable to convert BCD to integer'
         );
 
