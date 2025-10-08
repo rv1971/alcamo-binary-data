@@ -11,7 +11,7 @@ use alcamo\exception\SyntaxError;
  * @attention May contain an odd number of digits. Use EvenHexString to
  * garantee an even number of digits.
  *
- * @date Last reviewed 2021-06-10
+ * @date Last reviewed 2025-10-08
  */
 class HexString extends StringObject
 {
@@ -21,7 +21,7 @@ class HexString extends StringObject
     }
 
     /// Create from hex string that may contain whitespace
-    public static function newFromString(string $text): self
+    public static function newFromHexString(string $text): self
     {
         $text = strtoupper(preg_replace('/\s+/', '', $text));
 
@@ -38,6 +38,8 @@ class HexString extends StringObject
 
         return new static($text);
     }
+
+    protected $text_; ///< uppercase hexadecimal string
 
     /**
      * @brief Constructor is protected because it does not carry out any checks

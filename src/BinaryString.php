@@ -11,9 +11,9 @@ use alcamo\exception\{OutOfRange, Unsupported};
  */
 
 /**
- * @brief Array of bytes that represents binary content
+ * @brief Binary content
  *
- * @date Last reviewed 2021-06-10
+ * @date Last reviewed 2025-10-08
  */
 class BinaryString implements \ArrayAccess, \Countable
 {
@@ -23,10 +23,12 @@ class BinaryString implements \ArrayAccess, \Countable
      * @param $value integer to represent.
      *
      * @param $minBytes Minimum number of bytes to return. May be any positive
-     * value. The result may be longer than this if necessary to represent the
+     * value, not necessarily a power of two.
+     *
+     * The result may be longer than $minBytes if necessary to represent the
      * value. By default, the minimum binary string needed to represent the
-     * value is resturned; this may be any number, not necessarily a power of
-     * two.
+     * value is returned, which may have any length, not necessarily a power
+     * of two.
      */
     public static function newFromInt(int $value, int $minBytes = null): self
     {
@@ -69,7 +71,7 @@ class BinaryString implements \ArrayAccess, \Countable
         $this->data_ = (string)$data;
     }
 
-    /// Return binary string as string
+    /// Return binary string verbatim
     public function getData(): string
     {
         return $this->data_;
@@ -134,11 +136,13 @@ class BinaryString implements \ArrayAccess, \Countable
     {
         /** @throw alcamo::exception::Unsupported at every invocation. */
         throw (new Unsupported())->setMessageContext(
-            [ 'feature' => 'Unsetting bytes in a binary string' ]
+            [
+                'feature' => 'Unsetting bytes in a binary string',
+                'inData' => (string)$this,
+                'atOffset' => $offset
+            ]
         );
     }
-
-    /* == operations == */
 
     /// Whether all bits are zero
     public function isZero(): bool
@@ -188,10 +192,22 @@ class BinaryString implements \ArrayAccess, \Countable
         }
     }
 
-    /// Return new object without leading zero bytes
-    public function ltrim(): self
+    /// Return new object without leading bytes made of given characters
+    public function ltrim(?string $characters = null): self
     {
-        return new self(ltrim($this->data_, "\x00"));
+        return new self(ltrim($this->data_, $characters ?? "\x00"));
+    }
+
+    /// Return new object without trailing bytes made of given characters
+    public function rtrim(?string $characters = null): self
+    {
+        return new self(rtrim($this->data_, $characters ?? "\x00"));
+    }
+
+    /// Return new object without surrounding bytes made of given characters
+    public function trim(?string $characters = null): self
+    {
+        return new self(trim($this->data_, $characters ?? "\x00"));
     }
 
     /// Return new object as bitwise AND of $this and $binString

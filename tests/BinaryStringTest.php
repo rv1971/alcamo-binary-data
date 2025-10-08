@@ -18,21 +18,21 @@ class BinaryStringTest extends TestCase
         $expectedCount,
         $expectedIsZero,
         $expectedLtrim
-    ) {
-        $binString = BinaryString::newFromInt($value, $minBytes);
+    ): void {
+        $binaryString = BinaryString::newFromInt($value, $minBytes);
 
-        $this->assertSame($expectedToString, (string)$binString);
+        $this->assertSame($expectedToString, (string)$binaryString);
 
-        $this->assertSame($expectedGetData, $binString->getData());
+        $this->assertSame($expectedGetData, $binaryString->getData());
 
-        $this->assertSame($expectedCount, count($binString));
+        $this->assertSame($expectedCount, count($binaryString));
 
-        $this->assertSame($expectedIsZero, $binString->isZero());
+        $this->assertSame($expectedIsZero, $binaryString->isZero());
 
-        $this->assertSame($expectedLtrim, (string)$binString->ltrim());
+        $this->assertSame($expectedLtrim, (string)$binaryString->ltrim());
     }
 
-    public function newFromIntProvider()
+    public function newFromIntProvider(): array
     {
         return [
             '0-null' => [
@@ -110,7 +110,7 @@ class BinaryStringTest extends TestCase
         ];
     }
 
-    public function testNewFromHex()
+    public function testNewFromHex(): void
     {
         $this->assertEquals(
             new BinaryString("\x00\x12\xab"),
@@ -118,57 +118,57 @@ class BinaryStringTest extends TestCase
         );
     }
 
-    public function testArrayAccess()
+    public function testArrayAccess(): void
     {
-        $binString = BinaryString::newFromHex("01020304");
+        $binaryString = BinaryString::newFromHex("01020304");
 
-        $this->assertTrue(isset($binString[0]));
-        $this->assertTrue(isset($binString[3]));
-        $this->assertFalse(isset($binString[4]));
+        $this->assertTrue(isset($binaryString[0]));
+        $this->assertTrue(isset($binaryString[3]));
+        $this->assertFalse(isset($binaryString[4]));
 
-        $this->assertSame(1, $binString[0]);
-        $this->assertSame(2, $binString[1]);
-        $this->assertSame(3, $binString[2]);
-        $this->assertSame(4, $binString[3]);
+        $this->assertSame(1, $binaryString[0]);
+        $this->assertSame(2, $binaryString[1]);
+        $this->assertSame(3, $binaryString[2]);
+        $this->assertSame(4, $binaryString[3]);
 
-        $binString[2] = 255;
-        $this->assertSame(255, $binString[2]);
+        $binaryString[2] = 255;
+        $this->assertSame(255, $binaryString[2]);
     }
 
-    public function testArrayOffsetSetException1()
+    public function testArrayOffsetSetException1(): void
     {
-        $binString = BinaryString::newFromHex("ABCD");
+        $binaryString = BinaryString::newFromHex("ABCD");
 
         $this->expectException(OutOfRange::class);
         $this->expectExceptionMessage(
             'Value 2 out of range [0, 1]; offset outside of given binary string'
         );
 
-        $binString[2] = 0;
+        $binaryString[2] = 0;
     }
 
-    public function testArrayOffsetSetException2()
+    public function testArrayOffsetSetException2(): void
     {
-        $binString = BinaryString::newFromHex("ABCD");
+        $binaryString = BinaryString::newFromHex("ABCD");
 
         $this->expectException(OutOfRange::class);
         $this->expectExceptionMessage(
             'Value 256 out of range [0, 255]; value does not represent a byte'
         );
 
-        $binString[1] = 256;
+        $binaryString[1] = 256;
     }
 
-    public function testArrayOffsetUnsetException()
+    public function testArrayOffsetUnsetException(): void
     {
-        $binString = BinaryString::newFromHex("00");
+        $binaryString = BinaryString::newFromHex("00");
 
         $this->expectException(Unsupported::class);
         $this->expectExceptionMessage(
             '"Unsetting bytes in a binary string" not supported'
         );
 
-        unset($binString[0]);
+        unset($binaryString[0]);
     }
 
     /**
@@ -177,10 +177,10 @@ class BinaryStringTest extends TestCase
     public function testToInt(
         $hexString,
         $expectedInt
-    ) {
-        $binString = BinaryString::newFromHex($hexString);
+    ): void {
+        $binaryString = BinaryString::newFromHex($hexString);
 
-        $this->assertSame($expectedInt, $binString->toInt());
+        $this->assertSame($expectedInt, $binaryString->toInt());
     }
 
     public function toIntProvider()
@@ -198,16 +198,58 @@ class BinaryStringTest extends TestCase
         ];
     }
 
-    public function testToIntException()
+    public function testToIntException(): void
     {
-        $binString = BinaryString::newFromHex("123456781234567812345678");
+        $binaryString = BinaryString::newFromHex("123456781234567812345678");
 
         $this->expectException(OutOfRange::class);
         $this->expectExceptionMessage(
             'Value 12 out of range [0, 8]; too long for conversion to integer'
         );
 
-        $binString->toInt();
+        $binaryString->toInt();
+    }
+
+    /**
+     * @dataProvider trimProvider
+     */
+    public function testTrim(
+        $hexString,
+        $characters,
+        $expectedLtrimHex,
+        $expectedRtrimHex,
+        $expectedTrimHex
+    ): void {
+        $binaryString = BinaryString::newFromHex($hexString);
+
+        $this->assertEquals(
+            BinaryString::newFromHex($expectedLtrimHex),
+            $binaryString->ltrim($characters)
+        );
+
+        $this->assertEquals(
+            BinaryString::newFromHex($expectedRtrimHex),
+            $binaryString->rtrim($characters)
+        );
+
+        $this->assertEquals(
+            BinaryString::newFromHex($expectedTrimHex),
+            $binaryString->trim($characters)
+        );
+    }
+
+    public function trimProvider(): array
+    {
+        return [
+            [ '00FF1234EE00', null, 'FF1234EE00', '00FF1234EE', 'FF1234EE' ],
+            [
+                'FFEE001234FF00EE',
+                "\xFF\xEE",
+                '001234FF00EE',
+                'FFEE001234FF00',
+                '001234FF00'
+            ]
+        ];
     }
 
     /**
@@ -217,16 +259,16 @@ class BinaryStringTest extends TestCase
         $hexString1,
         $hexString2,
         $expectedResultHexString
-    ) {
-        $binString1 = BinaryString::newFromHex($hexString1);
-        $binString2 = BinaryString::newFromHex($hexString2);
+    ): void {
+        $binaryString1 = BinaryString::newFromHex($hexString1);
+        $binaryString2 = BinaryString::newFromHex($hexString2);
 
-        $result = $binString1->bitwiseAnd($binString2);
+        $result = $binaryString1->bitwiseAnd($binaryString2);
 
         $this->assertSame($expectedResultHexString, (string)$result);
     }
 
-    public function bitwiseAndProvider()
+    public function bitwiseAndProvider(): array
     {
         return [
             [ "13", "31", "11" ],
@@ -246,16 +288,16 @@ class BinaryStringTest extends TestCase
         $hexString1,
         $hexString2,
         $expectedResultHexString
-    ) {
-        $binString1 = BinaryString::newFromHex($hexString1);
-        $binString2 = BinaryString::newFromHex($hexString2);
+    ): void {
+        $binaryString1 = BinaryString::newFromHex($hexString1);
+        $binaryString2 = BinaryString::newFromHex($hexString2);
 
-        $result = $binString1->bitwiseOr($binString2);
+        $result = $binaryString1->bitwiseOr($binaryString2);
 
         $this->assertSame($expectedResultHexString, (string)$result);
     }
 
-    public function bitwiseOrProvider()
+    public function bitwiseOrProvider(): array
     {
         return [
             [ "1144", "2211", "3355" ],
