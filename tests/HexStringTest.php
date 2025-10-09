@@ -25,7 +25,8 @@ class HexStringTest extends TestCase
     {
         $this->expectException(SyntaxError::class);
         $this->expectExceptionMessage(
-            "Syntax error in \"12ABCDX789FF\"; not a valid hex string"
+            'Syntax error in "12ABCDX789FF" at offset 6 ("X789FF"); '
+                . 'not a valid hex string'
         );
 
         HexString::newFromHexString('12abcdx789ff');

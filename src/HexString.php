@@ -31,6 +31,7 @@ class HexString extends StringObject
             throw (new SyntaxError())->setMessageContext(
                 [
                     'inData' => $text,
+                    'atOffset' => strspn($text, '0123456789ABCDEF'),
                     'extraMessage' => 'not a valid hex string'
                 ]
             );

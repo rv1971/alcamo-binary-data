@@ -11,7 +11,7 @@ use alcamo\exception\{OutOfRange, SyntaxError};
  * accessed through the ArrayAccess interface and the number of digits
  * can be obtained via count().
  *
- * @date Last reviewed 2021-06-14
+ * @date Last reviewed 2025-10-09
  */
 class CompressedBcd extends HexString
 {
@@ -40,13 +40,13 @@ class CompressedBcd extends HexString
     }
 
     /// Create from numeric string that may contain whitespace.
-    public static function newFromString(string $text): HexString
+    public static function newFromString(string $text): self
     {
         $text = strtoupper(preg_replace('/\s+/', '', $text));
 
         $bareContent = rtrim($text, 'F');
 
-        if (strspn($bareContent, '0123456789') != strlen($bareContent)) {
+        if ($bareContent != '' && !ctype_digit($bareContent)) {
             throw (new SyntaxError())->setMessageContext(
                 [
                     'inData' => $text,

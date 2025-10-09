@@ -13,7 +13,7 @@ use alcamo\exception\{OutOfRange, SyntaxError};
  *
  * @attention May contain an odd number of digits.
  *
- * @date Last reviewed 2021-06-10
+ * @date Last reviewed 2025-10-09
  */
 class Bcd extends HexString
 {
@@ -25,7 +25,7 @@ class Bcd extends HexString
    * @param $minDigits int Minimum length of the result in digits.
    *
    * @param $allowOdd bool Whether the result may have an odd number of
-   * digits. If `false` or `null`, the result my be left-padded with a '0'
+   * digits. If `false` or `null`, the result may be left-padded with a '0'
    * digit.
    */
     public static function newFromInt(
@@ -43,11 +43,11 @@ class Bcd extends HexString
     }
 
     /// Create from string made of decimal digits and whitespace
-    public static function newFromString(string $text): HexString
+    public static function newFromString(string $text): self
     {
         $text = preg_replace('/\s+/', '', $text);
 
-        if (strspn($text, '0123456789') != strlen($text)) {
+        if ($text != '' && !ctype_digit($text)) {
             /** @throw alcamo::exception::SyntaxError if $text has content
              *  other than decimal digits and whitespace. */
             throw (new SyntaxError())->setMessageContext(
@@ -95,7 +95,16 @@ class Bcd extends HexString
         );
     }
 
-    /// Return new object left-padded with '0' to at least $minLength digits
+    /**
+     * @brief Return new object left-padded with '0' to at least $minLength
+     * digits
+     *
+     * @param $minDigits int Minimum length of the result in digits.
+     *
+     * @param $allowOdd bool Whether the result may have an odd number of
+     * digits. If `false` or `null`, the result may be left-padded with a '0'
+     * digit.
+     */
     public function pad(?int $minLength = null, ?bool $allowOdd = null): self
     {
         if (!$allowOdd) {
