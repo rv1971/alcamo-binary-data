@@ -30,8 +30,8 @@ Provides methods to convert from and to integers.
 
 ## Class `CompressedBcd`
 
-Represents compressed numeric data as defined in the [EMV
-specification](https://en.wikipedia.org/wiki/EMV).
+Represents compressed numeric data as defined in the
+[EMV](https://en.wikipedia.org/wiki/EMV) specification.
 
 The difference between `Bcd` and `CompressedBcd` is that in the
 former, data is right-justified and may be padded with `0` nibbles on
