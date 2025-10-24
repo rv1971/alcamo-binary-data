@@ -15,6 +15,7 @@ use alcamo\exception\SyntaxError;
  */
 class HexString extends StringObject
 {
+    /// Create uppercase hex representation of binary data
     public static function newFromBinaryString(string $data): self
     {
         return new static(strtoupper(bin2hex($data)));
@@ -40,7 +41,7 @@ class HexString extends StringObject
         return new static($text);
     }
 
-    protected $text_; ///< uppercase hexadecimal string
+    protected $text_; ///< Uppercase hexadecimal string
 
     /**
      * @brief Constructor is protected because it does not carry out any checks
@@ -75,6 +76,7 @@ class HexString extends StringObject
         parent::offsetSet($offset, $value);
     }
 
+    /// Create binary data from their hex representation
     public function toBinaryString(): BinaryString
     {
         return BinaryString::newFromHex($this->text_);

@@ -20,10 +20,12 @@ class CompressedBcd extends HexString
    *
    * @param $value int Value to encode.
    *
-   * @param $minDigits int Minimum length of the result in digits.
+   * @param $minDigits int Minimum length of the result in digits. The result
+   * is right-padded with 'F' digits as needed.
    *
    * @param $allowOdd bool Whether the result may have an odd number of
-   * digits.
+   * digits. If `false` or `null`, the result is right-padded with an 'F'
+   * digit if necessary.
    */
     public static function newFromInt(
         int $value,
@@ -69,7 +71,16 @@ class CompressedBcd extends HexString
         parent::__construct($text);
     }
 
-    /// Return new object right-padded with 'F' to at least $minLength digits
+    /**
+     * @brief Return new object right-padded with 'F' to at least $minLength
+     * digits
+     *
+     * @param $minDigits int Minimum length of the result in digits.
+     *
+     * @param $allowOdd bool Whether the result may have an odd number of
+     * digits. If `false` or `null`, the result is left-padded with a '0'
+     * digit if necessary.
+     */
     public function pad(?int $minLength = null, ?bool $allowOdd = null): self
     {
         if (!$allowOdd) {

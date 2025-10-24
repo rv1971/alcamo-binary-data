@@ -17,17 +17,18 @@ use alcamo\exception\{OutOfRange, SyntaxError};
  */
 class Bcd extends HexString
 {
-  /**
-   * @brief Create from integer.
-   *
-   * @param $value int Value to encode.
-   *
-   * @param $minDigits int Minimum length of the result in digits.
-   *
-   * @param $allowOdd bool Whether the result may have an odd number of
-   * digits. If `false` or `null`, the result may be left-padded with a '0'
-   * digit.
-   */
+    /**
+     * @brief Create from integer.
+     *
+     * @param $value int Value to encode.
+     *
+     * @param $minDigits int Minimum length of the result in digits. The
+     * result is left-padded with '0' digits as needed.
+     *
+     * @param $allowOdd bool Whether the result may have an odd number of
+     * digits. If `false` or `null`, the result is left-padded with a '0'
+     * digit if necessary.
+     */
     public static function newFromInt(
         int $value,
         ?int $minDigits = null,
@@ -102,8 +103,8 @@ class Bcd extends HexString
      * @param $minDigits int Minimum length of the result in digits.
      *
      * @param $allowOdd bool Whether the result may have an odd number of
-     * digits. If `false` or `null`, the result may be left-padded with a '0'
-     * digit.
+     * digits. If `false` or `null`, the result is left-padded with a '0'
+     * digit if necessary.
      */
     public function pad(?int $minLength = null, ?bool $allowOdd = null): self
     {

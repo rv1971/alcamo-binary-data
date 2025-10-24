@@ -11,10 +11,10 @@ use alcamo\exception\SyntaxError;
  */
 class EvenHexString extends HexString
 {
-    /// Create from hex string that may contain whitespace
+    /** @copydoc alcamo::binary_data::HexString::newFromHexString() */
     public static function newFromHexString(string $text): HexString
     {
-        $text = strtoupper(preg_replace('/\s+/', '', $text));
+        $text = preg_replace('/\s+/', '', $text);
 
         /** @throw alcamo::exception::SyntaxError if $text (without
          *  whitespace) does not have an even number of hexadecimal digits. */

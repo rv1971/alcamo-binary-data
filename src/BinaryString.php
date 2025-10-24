@@ -192,19 +192,19 @@ class BinaryString implements \ArrayAccess, \Countable
         }
     }
 
-    /// Return new object without leading bytes made of given characters
+    /// Return new object without leading bytes made of given byte values
     public function ltrim(?string $characters = null): self
     {
         return new self(ltrim($this->data_, $characters ?? "\x00"));
     }
 
-    /// Return new object without trailing bytes made of given characters
+    /// Return new object without trailing bytes made of given byte values
     public function rtrim(?string $characters = null): self
     {
         return new self(rtrim($this->data_, $characters ?? "\x00"));
     }
 
-    /// Return new object without surrounding bytes made of given characters
+    /// Return new object without surrounding bytes made of given byte values
     public function trim(?string $characters = null): self
     {
         return new self(trim($this->data_, $characters ?? "\x00"));
