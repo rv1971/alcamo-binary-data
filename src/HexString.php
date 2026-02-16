@@ -41,8 +41,6 @@ class HexString extends StringObject
         return new static($text);
     }
 
-    protected $text_; ///< Uppercase hexadecimal string
-
     /**
      * @brief Constructor is protected because it does not carry out any checks
      *
