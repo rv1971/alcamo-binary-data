@@ -2,7 +2,7 @@
 
 namespace alcamo\binary_data;
 
-use alcamo\exception\{OutOfRange, Unsupported};
+use alcamo\exception\{LengthOutOfRange, OutOfRange, Unsupported};
 
 /**
  * @namespace alcamo::binary_data
@@ -17,6 +17,11 @@ use alcamo\exception\{OutOfRange, Unsupported};
  */
 class BinaryString implements \ArrayAccess, \Countable
 {
+    public static function isMachineBigEndian(): bool
+    {
+        return pack('s', -2) == "\xFF\xFE";
+    }
+
     /**
      * @brief Create binary big endian representation
      *
@@ -32,28 +37,24 @@ class BinaryString implements \ArrayAccess, \Countable
      */
     public static function newFromInt(int $value, int $minBytes = null): self
     {
-        switch (true) {
-            case $value <= 0xff:
-                $result = chr($value);
-                break;
-
-            case $value <= 0xffff:
-                $result = pack('n', $value);
-                break;
-
-            case $value <= 0xffffffff:
-                $result = ltrim(pack('N', $value), "\x00");
-                break;
-
-            default:
-                $result = ltrim(pack('J', $value), "\x00");
-                break;
+        if ($value >= 0) {
+            $result = ltrim(pack('J', $value), "\x00");
+        } else {
+            $result = ltrim(
+                self::isMachineBigEndian()
+                    ? pack('q', $value)
+                    : strrev(pack('q', $value)),
+                "\xFF"
+            );
         }
 
         return new static(
-            isset($minBytes)
-            ? str_pad($result, $minBytes, "\00", STR_PAD_LEFT)
-            : $result
+            str_pad(
+                $result,
+                $minBytes ?? 1,
+                $value >= 0 ? "\x00" : "\xFF",
+                STR_PAD_LEFT
+            )
         );
     }
 
@@ -151,45 +152,43 @@ class BinaryString implements \ArrayAccess, \Countable
     }
 
     /// Return as integer, if possible
-    public function toInt(): int
+    public function toInt(?bool $isSigned = null): int
     {
-        $data = ltrim($this->data_, "\x00");
+        if ($isSigned) {
+            $padString = ord($this->data_[0]) & 0x80 ? "\xFF" : "\x00";
 
-        switch (strlen($data)) {
-            case 1:
-                return ord($data);
+            $data = str_pad(
+                ltrim($this->data_, $padString),
+                8,
+                $padString,
+                STR_PAD_LEFT
+            );
 
-            case 2:
-                return unpack('n', $data)[1];
+            if (strlen($data) == 8) {
+                return unpack(
+                    'q',
+                    self::isMachineBigEndian() ? $data : strrev($data)
+                )[1];
+            }
+        } else {
+            $data =
+                str_pad(ltrim($this->data_, "\x00"), 8, "\x00", STR_PAD_LEFT);
 
-            case 3:
-                return unpack('N', "\x00$data")[1];
-
-            case 4:
-                return unpack('N', $data)[1];
-
-            case 5:
-                return unpack('J', "\x00\x00\x00$data")[1];
-
-            case 6:
-                return unpack('J', "\x00\x00$data")[1];
-
-            case 7:
-                return unpack('J', "\x00$data")[1];
-
-            case 8:
+            if (strlen($data) == 8) {
                 return unpack('J', $data)[1];
-
-            default:
-                /** @throw alcamo::exception::OutOfRange if $content is too
-                 *  long to be represented as an integer. */
-                OutOfRange::throwIfOutside(
-                    strlen($data),
-                    0,
-                    8,
-                    [ 'extraMessage' => 'too long for conversion to integer' ]
-                );
+            }
         }
+
+        /** @throw alcamo::exception::OutOfRange if $content is too long to be
+         *  represented as an integer. */
+        throw (new LengthOutOfRange())->setMessageContext(
+            [
+                'value' => bin2hex($data),
+                'length' => strlen($data),
+                'upperBound' => 8,
+                'extraMessage' => 'too long for conversion to integer'
+            ]
+        );
     }
 
     /// Return new object without leading bytes made of given byte values

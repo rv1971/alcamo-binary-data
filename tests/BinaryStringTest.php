@@ -3,7 +3,7 @@
 namespace alcamo\binary_data;
 
 use PHPUnit\Framework\TestCase;
-use alcamo\exception\{OutOfRange, Unsupported};
+use alcamo\exception\{LengthOutOfRange, OutOfRange, Unsupported};
 
 class BinaryStringTest extends TestCase
 {
@@ -30,6 +30,12 @@ class BinaryStringTest extends TestCase
         $this->assertSame($expectedIsZero, $binaryString->isZero());
 
         $this->assertSame($expectedLtrim, (string)$binaryString->ltrim());
+
+        if ($value >= 0) {
+            $this->assertSame($value, $binaryString->toInt());
+        } else {
+            $this->assertSame($value, $binaryString->toInt(true));
+        }
     }
 
     public function newFromIntProvider(): array
@@ -106,7 +112,25 @@ class BinaryStringTest extends TestCase
                 5,
                 false,
                 "0123456789"
-            ]
+            ],
+            '-3-null' => [
+                -3,
+                null,
+                "\xFD",
+                "FD",
+                1,
+                false,
+                "FD"
+            ],
+            '-129-3' => [
+                -129,
+                3,
+                "\xFF\xFF\x7F",
+                "FFFF7F",
+                3,
+                false,
+                "FFFF7F"
+            ],
         ];
     }
 
@@ -176,25 +200,30 @@ class BinaryStringTest extends TestCase
      */
     public function testToInt(
         $hexString,
+        $isSigned,
         $expectedInt
     ): void {
         $binaryString = BinaryString::newFromHex($hexString);
 
-        $this->assertSame($expectedInt, $binaryString->toInt());
+        $this->assertSame($expectedInt, $binaryString->toInt($isSigned));
     }
 
     public function toIntProvider()
     {
         return [
-            [ "01", 0x01 ],
-            [ "1234", 0x1234 ],
-            [ "123456", 0x123456 ],
-            [ "12345678", 0x12345678 ],
-            [ "0123456789", 0x0123456789 ],
-            [ "123456789012", 0x123456789012 ],
-            [ "12345678901234", 0x12345678901234 ],
-            [ "1234567890123456", 0x1234567890123456 ],
-            [ "0000000000000000000000000000000123", 0x123 ]
+            [ "01", false, 0x01 ],
+            [ "1234", false, 0x1234 ],
+            [ "123456", false, 0x123456 ],
+            [ "12345678", false, 0x12345678 ],
+            [ "0123456789", false, 0x0123456789 ],
+            [ "123456789012", false, 0x123456789012 ],
+            [ "12345678901234", false, 0x12345678901234 ],
+            [ "1234567890123456", false, 0x1234567890123456 ],
+            [ "0000000000000000000000000000000123", false, 0x123 ],
+            [ "01", true, 0x01 ],
+            [ "FE", true, -2 ],
+            [ "FFFFFD", true, -3 ],
+            [ "FFFFFFFFFFFFFFFFFFFF8000", true, -32768 ],
         ];
     }
 
@@ -202,9 +231,10 @@ class BinaryStringTest extends TestCase
     {
         $binaryString = BinaryString::newFromHex("123456781234567812345678");
 
-        $this->expectException(OutOfRange::class);
+        $this->expectException(LengthOutOfRange::class);
         $this->expectExceptionMessage(
-            'Value 12 out of range [0, 8]; too long for conversion to integer'
+            'Length 12 of "123456781234567812345678" out of range [0, 8]; '
+                . 'too long for conversion to integer'
         );
 
         $binaryString->toInt();
