@@ -142,6 +142,26 @@ class BinaryStringTest extends TestCase
         );
     }
 
+    /**
+     * @dataProvider newFromBitStringProvider
+     */
+    public function testNewFromBitString($value, $expectedToString): void
+    {
+        $binaryString = BinaryString::newFromBitString($value);
+
+        $this->assertSame($expectedToString, (string)$binaryString);
+    }
+
+    public function newFromBitStringProvider(): array
+    {
+        return [
+            [ '', '' ],
+            [ '10000001', '81' ],
+            [ '1111000010010110', 'F096' ],
+            [ '000100100011010001010110', '123456' ]
+        ];
+    }
+
     public function testArrayAccess(): void
     {
         $binaryString = BinaryString::newFromHex("01020304");

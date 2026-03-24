@@ -64,6 +64,30 @@ class BinaryString implements \ArrayAccess, \Countable
         return new static(hex2bin(preg_replace('/\s+/', '', $hex)));
     }
 
+    /// Create from string of 0s and 1s, which may contain whitespace
+    public static function newFromBitString(string $bitString): self
+    {
+        $bitString = preg_replace('/\s+/', '', $bitString);
+
+        if (strlen($bitString) & 7) {
+            /** @throw alcamo::exception::Unsupported at every invocation. */
+            throw (new Unsupported())->setMessageContext(
+                [
+                    'feature' => 'Bit strings with length not a multiple of 8',
+                    'inData' => $bitString
+                ]
+            );
+        }
+
+        $result = '';
+
+        for($i = 0; isset($bitString[$i]); $i += 8) {
+            $result .= chr(bindec(substr($bitString, $i, 8)));
+        }
+
+        return new static($result);
+    }
+
     protected $data_; ///< Binary string
 
     /// Create from binary string
