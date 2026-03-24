@@ -81,7 +81,7 @@ class BinaryString implements \ArrayAccess, \Countable
 
         $result = '';
 
-        for($i = 0; isset($bitString[$i]); $i += 8) {
+        for ($i = 0; isset($bitString[$i]); $i += 8) {
             $result .= chr(bindec(substr($bitString, $i, 8)));
         }
 
@@ -213,6 +213,18 @@ class BinaryString implements \ArrayAccess, \Countable
                 'extraMessage' => 'too long for conversion to integer'
             ]
         );
+    }
+
+    public function toBitString(): string
+    {
+        $result = '';
+
+        for ($i = 0; isset($this->data_[$i]); $i++) {
+            $result .=
+                str_pad(decbin(ord($this->data_[$i])), 8, '0', STR_PAD_LEFT);
+        }
+
+        return $result;
     }
 
     /// Return new object without leading bytes made of given byte values

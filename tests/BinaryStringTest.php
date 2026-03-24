@@ -150,16 +150,32 @@ class BinaryStringTest extends TestCase
         $binaryString = BinaryString::newFromBitString($value);
 
         $this->assertSame($expectedToString, (string)$binaryString);
+
+        $this->assertSame(
+            str_replace(' ', '', $value),
+            $binaryString->toBitString()
+        );
     }
 
     public function newFromBitStringProvider(): array
     {
         return [
             [ '', '' ],
-            [ '10000001', '81' ],
-            [ '1111000010010110', 'F096' ],
-            [ '000100100011010001010110', '123456' ]
+            [ '1000 0001', '81' ],
+            [ '1111 0000 1001 0110', 'F096' ],
+            [ '0001 0010 0011 0100 0101 0110', '123456' ]
         ];
+    }
+
+    public function testNewFromBitStringException(): void
+    {
+        $this->expectException(Unsupported::class);
+        $this->expectExceptionMessage(
+            '"Bit strings with length not a multipl..." not supported '
+                . 'in "1010101"'
+        );
+
+        BinaryString::newFromBitString('1010101');
     }
 
     public function testArrayAccess(): void
