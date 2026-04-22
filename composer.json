@@ -5,6 +5,7 @@
     "license": "Apache-2.0",
     "require": {
         "php": "7.3 - 8.0",
+	"php-ds/php-ds": "^1.3",
         "alcamo/string": "^0.6"
     },
     "autoload": {

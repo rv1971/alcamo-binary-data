@@ -2,7 +2,8 @@
 
 namespace alcamo\binary_data;
 
-use alcamo\exception\{LengthOutOfRange, OutOfRange, Unsupported};
+use alcamo\exception\{LengthOutOfRange, OutOfRange, SyntaxError, Unsupported};
+use Ds\Set;
 
 /**
  * @namespace alcamo::binary_data
@@ -98,6 +99,53 @@ class BinaryString implements \ArrayAccess, \Countable
         }
 
         return new static($result);
+    }
+
+    /**
+     * @brief Create from set of bit numbers
+     *
+     * Create a binary string where those bits are 1 which are containd in a
+     * set. Bits are numbered from left to right.
+     *
+     * @param $bitIndexes Set|array Nonnegative integers indicating bit
+     * positions. Repeated values are silently ignored.
+     *
+     * @param $leftmostBitIndex Position that indicates the leftmost bit in a
+     * binary string. In other words, where left-to-right numbering of bits
+     * starts from. [default 0]
+     */
+    public function newFromBitsSet(
+        $bitIndexes,
+        ?int $leftmostBitIndex = null
+    ): self {
+        if (!is_array($bitIndexes)) {
+            $bitIndexes = $bitIndexes->toArray();
+        }
+
+        sort($bitIndexes);
+
+        $bitsString = str_pad(
+            '',
+            (end($bitIndexes) - $leftmostBitIndex + 7) >> 3 << 3,
+            '0'
+        );
+
+        foreach ($bitIndexes as $bitIndex) {
+            if (!is_numeric($bitIndex) || (int)$bitIndex != $bitIndex) {
+                /** @throw alcamo::exception::SyntaxError if $bitIndex is not
+                 *  an integer. */
+                throw (new SyntaxError())
+                    ->setMessageContext([ 'value' => $bitIndex ]);
+            }
+
+            /** @throw alcamo::exception::OutOfRange if $value outside of
+             *  [$leftmostBitIndex, ∞]. */
+            OutOfRange::throwIfOutside($bitIndex, (int)$leftmostBitIndex);
+
+            $bitsString[$bitIndex - $leftmostBitIndex] = '1';
+        }
+
+        return static::newFromBitsString($bitsString);
     }
 
     protected $data_; ///< Binary string
@@ -239,6 +287,26 @@ class BinaryString implements \ArrayAccess, \Countable
         for ($i = 0; isset($this->data_[$i]); $i++) {
             $result .=
                 str_pad(decbin(ord($this->data_[$i])), 8, '0', STR_PAD_LEFT);
+        }
+
+        return $result;
+    }
+
+    public function toBitsSet(?int $leftmostBitIndex = null): Set
+    {
+        $result = new Set();
+
+        $i = (int)$leftmostBitIndex;
+        for ($pos = 0; isset($this->data_[$pos]); $pos++) {
+            $byte = ord($this->data_[$pos]);
+
+            for($bit = 0x80; $bit; $bit >>= 1) {
+                if ($byte & $bit) {
+                    $result->add($i);
+                }
+
+                $i++;
+            }
         }
 
         return $result;

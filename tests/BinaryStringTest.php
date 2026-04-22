@@ -4,6 +4,7 @@ namespace alcamo\binary_data;
 
 use PHPUnit\Framework\TestCase;
 use alcamo\exception\{LengthOutOfRange, OutOfRange, Unsupported};
+use Ds\Set;
 
 class BinaryStringTest extends TestCase
 {
@@ -162,11 +163,11 @@ class BinaryStringTest extends TestCase
     /**
      * @dataProvider newFromBitsStringProvider
      */
-    public function testNewFromBitsString($value, $expectedToString): void
+    public function testNewFromBitsString($value, $expectedString): void
     {
         $binaryString = BinaryString::newFromBitsString($value);
 
-        $this->assertSame($expectedToString, (string)$binaryString);
+        $this->assertSame($expectedString, (string)$binaryString);
 
         $this->assertSame(
             str_replace(' ', '', $value),
@@ -181,6 +182,40 @@ class BinaryStringTest extends TestCase
             [ '1000 0001', '81' ],
             [ '1111 0000 1001 0110', 'F096' ],
             [ '0001 0010 0011 0100 0101 0110', '123456' ]
+        ];
+    }
+
+    /**
+     * @dataProvider newFromBitsSetProvider
+     */
+    public function testNewFromBitsSet(
+        $bitsSet,
+        $leftmostBitIndex,
+        $expectedString): void {
+        $binaryString =
+            BinaryString::newFromBitsSet($bitsSet, $leftmostBitIndex);
+
+        $this->assertSame($expectedString, (string)$binaryString);
+
+        if (is_array($bitsSet)) {
+            sort($bitsSet);
+
+            $bitsSet = new Set($bitsSet);
+        }
+
+        $this->assertEquals(
+            $bitsSet,
+            $binaryString->toBitsSet($leftmostBitIndex)
+        );
+    }
+
+    public function newFromBitsSetProvider(): array
+    {
+        return [
+            [ [], 0, '' ],
+            [ new Set(), 1, '' ],
+            [ [ 8, 9 ], 0, "00C0" ],
+            [ new Set([ 4, 42, 44, 45 ]), 1, "100000000058" ]
         ];
     }
 
