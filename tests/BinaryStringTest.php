@@ -160,21 +160,21 @@ class BinaryStringTest extends TestCase
     }
 
     /**
-     * @dataProvider newFromBitStringProvider
+     * @dataProvider newFromBitsStringProvider
      */
-    public function testNewFromBitString($value, $expectedToString): void
+    public function testNewFromBitsString($value, $expectedToString): void
     {
-        $binaryString = BinaryString::newFromBitString($value);
+        $binaryString = BinaryString::newFromBitsString($value);
 
         $this->assertSame($expectedToString, (string)$binaryString);
 
         $this->assertSame(
             str_replace(' ', '', $value),
-            $binaryString->toBitString()
+            $binaryString->toBitsString()
         );
     }
 
-    public function newFromBitStringProvider(): array
+    public function newFromBitsStringProvider(): array
     {
         return [
             [ '', '' ],
@@ -184,7 +184,7 @@ class BinaryStringTest extends TestCase
         ];
     }
 
-    public function testNewFromBitStringException(): void
+    public function testNewFromBitsStringException(): void
     {
         $this->expectException(Unsupported::class);
         $this->expectExceptionMessage(
@@ -192,7 +192,7 @@ class BinaryStringTest extends TestCase
                 . 'in "1010101"'
         );
 
-        BinaryString::newFromBitString('1010101');
+        BinaryString::newFromBitsString('1010101');
     }
 
     public function testArrayAccess(): void

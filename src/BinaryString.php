@@ -77,7 +77,7 @@ class BinaryString implements \ArrayAccess, \Countable
     }
 
     /// Create from string of 0s and 1s, which may contain whitespace
-    public static function newFromBitString(string $bitString): self
+    public static function newFromBitsString(string $bitString): self
     {
         $bitString = preg_replace('/\s+/', '', $bitString);
 
@@ -232,7 +232,7 @@ class BinaryString implements \ArrayAccess, \Countable
         return strtr($this, 'ABCDEF', ':;<=>?');
     }
 
-    public function toBitString(): string
+    public function toBitsString(): string
     {
         $result = '';
 
