@@ -142,6 +142,23 @@ class BinaryStringTest extends TestCase
         );
     }
 
+    public function testNewFromFourBitString(): void
+    {
+        $fourBitString = "12?>=<;:";
+
+        $binaryString = BinaryString::newFromFourBitString($fourBitString);
+
+        $this->assertEquals(
+            new BinaryString("\x12\xfe\xdc\xba"),
+            $binaryString
+        );
+
+        $this->assertSame(
+            $fourBitString,
+            $binaryString->toFourBitString()
+        );
+    }
+
     /**
      * @dataProvider newFromBitStringProvider
      */

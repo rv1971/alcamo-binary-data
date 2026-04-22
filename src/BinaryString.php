@@ -64,6 +64,18 @@ class BinaryString implements \ArrayAccess, \Countable
         return new static(hex2bin(preg_replace('/\s+/', '', $hex)));
     }
 
+    /**
+     * @brief Create from four-bit string which may contain whitespace
+     *
+     * A four-bit string is a string composed of the characters
+     * `0123456789:;<=>?`. Each character is translated to nibble, where
+     * `:;<=>?` correspond to the hexadecimal characters ABCDEF.
+     */
+    public static function newFromFourBitString(string $fourBitString): self
+    {
+        return static::newFromHex(strtr($fourBitString, ':;<=>?', 'ABCDEF'));
+    }
+
     /// Create from string of 0s and 1s, which may contain whitespace
     public static function newFromBitString(string $bitString): self
     {
@@ -213,6 +225,11 @@ class BinaryString implements \ArrayAccess, \Countable
                 'extraMessage' => 'too long for conversion to integer'
             ]
         );
+    }
+
+    public function toFourBitString(): string
+    {
+        return strtr($this, 'ABCDEF', ':;<=>?');
     }
 
     public function toBitString(): string
