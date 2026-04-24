@@ -72,13 +72,13 @@ class BinaryString implements \ArrayAccess, \Countable
      * `0123456789:;<=>?`. Each character is translated to nibble, where
      * `:;<=>?` correspond to the hexadecimal characters ABCDEF.
      */
-    public static function newFromFourBitString(string $fourBitString): self
+    public static function newFromFourBitCharString(string $fourBitString): self
     {
         return static::newFromHex(strtr($fourBitString, ':;<=>?', 'ABCDEF'));
     }
 
     /// Create from string of 0s and 1s, which may contain whitespace
-    public static function newFromBitsString(string $bitString): self
+    public static function newFromBitString(string $bitString): self
     {
         $bitString = preg_replace('/\s+/', '', $bitString);
 
@@ -124,7 +124,7 @@ class BinaryString implements \ArrayAccess, \Countable
 
         sort($bitIndexes);
 
-        $bitsString = str_pad(
+        $bitString = str_pad(
             '',
             (end($bitIndexes) - $leftmostBitIndex + 7) >> 3 << 3,
             '0'
@@ -142,10 +142,10 @@ class BinaryString implements \ArrayAccess, \Countable
              *  [$leftmostBitIndex, ∞]. */
             OutOfRange::throwIfOutside($bitIndex, (int)$leftmostBitIndex);
 
-            $bitsString[$bitIndex - $leftmostBitIndex] = '1';
+            $bitString[$bitIndex - $leftmostBitIndex] = '1';
         }
 
-        return static::newFromBitsString($bitsString);
+        return static::newFromBitString($bitString);
     }
 
     protected $data_; ///< Binary string
@@ -275,12 +275,12 @@ class BinaryString implements \ArrayAccess, \Countable
         );
     }
 
-    public function toFourBitString(): string
+    public function toFourBitCharString(): string
     {
         return strtr($this, 'ABCDEF', ':;<=>?');
     }
 
-    public function toBitsString(): string
+    public function toBitString(): string
     {
         $result = '';
 
@@ -300,7 +300,7 @@ class BinaryString implements \ArrayAccess, \Countable
         for ($pos = 0; isset($this->data_[$pos]); $pos++) {
             $byte = ord($this->data_[$pos]);
 
-            for($bit = 0x80; $bit; $bit >>= 1) {
+            for ($bit = 0x80; $bit; $bit >>= 1) {
                 if ($byte & $bit) {
                     $result->add($i);
                 }

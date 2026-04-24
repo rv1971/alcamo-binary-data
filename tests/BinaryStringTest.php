@@ -143,11 +143,11 @@ class BinaryStringTest extends TestCase
         );
     }
 
-    public function testNewFromFourBitString(): void
+    public function testNewFromFourBitCharString(): void
     {
         $fourBitString = "12?>=<;:";
 
-        $binaryString = BinaryString::newFromFourBitString($fourBitString);
+        $binaryString = BinaryString::newFromFourBitCharString($fourBitString);
 
         $this->assertEquals(
             new BinaryString("\x12\xfe\xdc\xba"),
@@ -156,26 +156,26 @@ class BinaryStringTest extends TestCase
 
         $this->assertSame(
             $fourBitString,
-            $binaryString->toFourBitString()
+            $binaryString->toFourBitCharString()
         );
     }
 
     /**
-     * @dataProvider newFromBitsStringProvider
+     * @dataProvider newFromBitStringProvider
      */
-    public function testNewFromBitsString($value, $expectedString): void
+    public function testNewFromBitString($value, $expectedString): void
     {
-        $binaryString = BinaryString::newFromBitsString($value);
+        $binaryString = BinaryString::newFromBitString($value);
 
         $this->assertSame($expectedString, (string)$binaryString);
 
         $this->assertSame(
             str_replace(' ', '', $value),
-            $binaryString->toBitsString()
+            $binaryString->toBitString()
         );
     }
 
-    public function newFromBitsStringProvider(): array
+    public function newFromBitStringProvider(): array
     {
         return [
             [ '', '' ],
@@ -191,7 +191,8 @@ class BinaryStringTest extends TestCase
     public function testNewFromBitsSet(
         $bitsSet,
         $leftmostBitIndex,
-        $expectedString): void {
+        $expectedString
+    ): void {
         $binaryString =
             BinaryString::newFromBitsSet($bitsSet, $leftmostBitIndex);
 
@@ -219,7 +220,7 @@ class BinaryStringTest extends TestCase
         ];
     }
 
-    public function testNewFromBitsStringException(): void
+    public function testNewFromBitStringException(): void
     {
         $this->expectException(Unsupported::class);
         $this->expectExceptionMessage(
@@ -227,7 +228,7 @@ class BinaryStringTest extends TestCase
                 . 'in "1010101"'
         );
 
-        BinaryString::newFromBitsString('1010101');
+        BinaryString::newFromBitString('1010101');
     }
 
     public function testArrayAccess(): void
