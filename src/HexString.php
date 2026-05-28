@@ -79,4 +79,10 @@ class HexString extends StringObject
     {
         return BinaryString::newFromHex($this->text_);
     }
+
+    /// Create immutable binary data from their hex representation
+    public function toImmutableBinaryString(): ImmutableBinaryString
+    {
+        return ImmutableBinaryString::newFromHex($this->text_);
+    }
 }

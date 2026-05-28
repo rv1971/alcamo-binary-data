@@ -1,0 +1,329 @@
+<?php
+
+namespace alcamo\binary_data;
+
+use alcamo\exception\{LengthOutOfRange, OutOfRange, SyntaxError, Unsupported};
+use Ds\Set;
+
+/**
+ * @namespace alcamo::binary_data
+ *
+ * @brief Simple classes the model binary data, in particular BCD
+ */
+
+/**
+ * @brief Binary content
+ *
+ * Common base class for the mutable and the immutable version.
+ *
+ * @date Last reviewed 2025-10-08
+ */
+abstract class AbstractBinaryString implements \ArrayAccess, \Countable
+{
+    public static function isMachineBigEndian(): bool
+    {
+        return pack('s', -2) == "\xFF\xFE";
+    }
+
+    /**
+     * @brief Create binary big endian representation
+     *
+     * @param $value integer to represent.
+     *
+     * @param $minBytes Minimum number of bytes to return. May be any positive
+     * value, not necessarily a power of two.
+     *
+     * The result may be longer than $minBytes if necessary to represent the
+     * value. By default, the minimum binary string needed to represent the
+     * value is returned, which may have any length, not necessarily a power
+     * of two.
+     */
+    public static function newFromInt(int $value, int $minBytes = null): self
+    {
+        if ($value >= 0) {
+            $result = ltrim(pack('J', $value), "\x00");
+        } else {
+            $result = ltrim(
+                self::isMachineBigEndian()
+                    ? pack('q', $value)
+                    : strrev(pack('q', $value)),
+                "\xFF"
+            );
+        }
+
+        return new static(
+            str_pad(
+                $result,
+                $minBytes ?? 1,
+                $value >= 0 ? "\x00" : "\xFF",
+                STR_PAD_LEFT
+            )
+        );
+    }
+
+    /// Create from hex string which may contain whitespace
+    public static function newFromHex(string $hex): self
+    {
+        return new static(hex2bin(preg_replace('/\s+/', '', $hex)));
+    }
+
+    /**
+     * @brief Create from four-bit string which may contain whitespace
+     *
+     * A four-bit string is a string composed of the characters
+     * `0123456789:;<=>?`. Each character is translated to nibble, where
+     * `:;<=>?` correspond to the hexadecimal characters ABCDEF.
+     */
+    public static function newFromFourBitCharString(string $fourBitString): self
+    {
+        return static::newFromHex(strtr($fourBitString, ':;<=>?', 'ABCDEF'));
+    }
+
+    /// Create from string of 0s and 1s, which may contain whitespace
+    public static function newFromBitString(string $bitString): self
+    {
+        $bitString = preg_replace('/\s+/', '', $bitString);
+
+        if (strlen($bitString) & 7) {
+            /** @throw alcamo::exception::Unsupported at every invocation. */
+            throw (new Unsupported())->setMessageContext(
+                [
+                    'feature' => 'Bit strings with length not a multiple of 8',
+                    'inData' => $bitString
+                ]
+            );
+        }
+
+        $result = '';
+
+        for ($i = 0; isset($bitString[$i]); $i += 8) {
+            $result .= chr(bindec(substr($bitString, $i, 8)));
+        }
+
+        return new static($result);
+    }
+
+    /**
+     * @brief Create from set of bit numbers
+     *
+     * Create a binary string where those bits are 1 which are containd in a
+     * set. Bits are numbered from left to right.
+     *
+     * @param $bitIndexes Set|array Nonnegative integers indicating bit
+     * positions. Repeated values are silently ignored.
+     *
+     * @param $leftmostBitIndex Position that indicates the leftmost bit in a
+     * binary string. In other words, where left-to-right numbering of bits
+     * starts from. [default 0]
+     */
+    public function newFromBitsSet(
+        $bitIndexes,
+        ?int $leftmostBitIndex = null
+    ): self {
+        if (!is_array($bitIndexes)) {
+            $bitIndexes = $bitIndexes->toArray();
+        }
+
+        sort($bitIndexes);
+
+        $bitString = str_pad(
+            '',
+            (end($bitIndexes) - $leftmostBitIndex + 7) >> 3 << 3,
+            '0'
+        );
+
+        foreach ($bitIndexes as $bitIndex) {
+            if (!is_numeric($bitIndex) || (int)$bitIndex != $bitIndex) {
+                /** @throw alcamo::exception::SyntaxError if $bitIndex is not
+                 *  an integer. */
+                throw (new SyntaxError())
+                    ->setMessageContext([ 'value' => $bitIndex ]);
+            }
+
+            /** @throw alcamo::exception::OutOfRange if $value outside of
+             *  [$leftmostBitIndex, ∞]. */
+            OutOfRange::throwIfOutside($bitIndex, (int)$leftmostBitIndex);
+
+            $bitString[$bitIndex - $leftmostBitIndex] = '1';
+        }
+
+        return static::newFromBitString($bitString);
+    }
+
+    protected $data_; ///< Binary string
+
+    /// Create from binary string
+    public function __construct(string $data = null)
+    {
+        $this->data_ = (string)$data;
+    }
+
+    /// Return binary string verbatim
+    public function getData(): string
+    {
+        return $this->data_;
+    }
+
+    /// Return representation as uppercase hex string
+    public function __toString(): string
+    {
+        return strtoupper(bin2hex($this->data_));
+    }
+
+    /// Return number of bytes
+    public function count()
+    {
+        return strlen($this->data_);
+    }
+
+    /// Whether a byte offset exists
+    public function offsetExists($offset)
+    {
+        return isset($this->data_[$offset]);
+    }
+
+    /// Return the byte at $offset as an integer, *not as a character*
+    public function offsetGet($offset)
+    {
+        return ord($this->data_[$offset]);
+    }
+
+    /// Whether all bits are zero
+    public function isZero(): bool
+    {
+        return strspn($this->data_, "\x00") == strlen($this->data_);
+    }
+
+    /// Return as integer, if possible
+    public function toInt(?bool $isSigned = null): int
+    {
+        if ($isSigned) {
+            $padString = ord($this->data_[0]) & 0x80 ? "\xFF" : "\x00";
+
+            $data = str_pad(
+                ltrim($this->data_, $padString),
+                8,
+                $padString,
+                STR_PAD_LEFT
+            );
+
+            if (strlen($data) == 8) {
+                return unpack(
+                    'q',
+                    self::isMachineBigEndian() ? $data : strrev($data)
+                )[1];
+            }
+        } else {
+            $data =
+                str_pad(ltrim($this->data_, "\x00"), 8, "\x00", STR_PAD_LEFT);
+
+            if (strlen($data) == 8) {
+                return unpack('J', $data)[1];
+            }
+        }
+
+        /** @throw alcamo::exception::OutOfRange if $content is too long to be
+         *  represented as an integer. */
+        throw (new LengthOutOfRange())->setMessageContext(
+            [
+                'value' => bin2hex($data),
+                'length' => strlen($data),
+                'upperBound' => 8,
+                'extraMessage' => 'too long for conversion to integer'
+            ]
+        );
+    }
+
+    public function toFourBitCharString(): string
+    {
+        return strtr($this, 'ABCDEF', ':;<=>?');
+    }
+
+    public function toBitString(): string
+    {
+        $result = '';
+
+        for ($i = 0; isset($this->data_[$i]); $i++) {
+            $result .=
+                str_pad(decbin(ord($this->data_[$i])), 8, '0', STR_PAD_LEFT);
+        }
+
+        return $result;
+    }
+
+    public function toBitsSet(?int $leftmostBitIndex = null): Set
+    {
+        $result = new Set();
+
+        $i = (int)$leftmostBitIndex;
+        for ($pos = 0; isset($this->data_[$pos]); $pos++) {
+            $byte = ord($this->data_[$pos]);
+
+            for ($bit = 0x80; $bit; $bit >>= 1) {
+                if ($byte & $bit) {
+                    $result->add($i);
+                }
+
+                $i++;
+            }
+        }
+
+        return $result;
+    }
+
+    /// Return new object without leading bytes made of given byte values
+    public function ltrim(?string $characters = null): self
+    {
+        return new static(ltrim($this->data_, $characters ?? "\x00"));
+    }
+
+    /// Return new object without trailing bytes made of given byte values
+    public function rtrim(?string $characters = null): self
+    {
+        return new static(rtrim($this->data_, $characters ?? "\x00"));
+    }
+
+    /// Return new object without surrounding bytes made of given byte values
+    public function trim(?string $characters = null): self
+    {
+        return new static(trim($this->data_, $characters ?? "\x00"));
+    }
+
+    /// Return new object as bitwise AND of $this and $binString
+    public function bitwiseAnd(self $binString): self
+    {
+        $length = max(count($this), count($binString));
+
+        /** Left-pad with zeros as needed to obtain two strings of equal
+         *  length. */
+        $op1 = str_pad($this->data_, $length, "\x00", STR_PAD_LEFT);
+        $op2 = str_pad($binString->data_, $length, "\x00", STR_PAD_LEFT);
+
+        /** The result is as long as the longest operand. */
+        $result = '';
+        for ($i = 0; $i < $length; $i++) {
+            $result .= chr(ord($op1[$i]) & ord($op2[$i]));
+        }
+
+        return new static($result);
+    }
+
+    /// Return new object as bitwise OR of $this and $binString
+    public function bitwiseOr(self $binString): self
+    {
+        $length = max(count($this), count($binString));
+
+        /** Left-pad with zeros as needed to obtain two strings of equal
+         *  length. */
+        $op1 = str_pad($this->data_, $length, "\x00", STR_PAD_LEFT);
+        $op2 = str_pad($binString->data_, $length, "\x00", STR_PAD_LEFT);
+
+        /** The result is as long as the longest operand. */
+        $result = '';
+        for ($i = 0; $i < $length; $i++) {
+            $result .= chr(ord($op1[$i]) | ord($op2[$i]));
+        }
+
+        return new static($result);
+    }
+}

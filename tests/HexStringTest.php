@@ -57,5 +57,10 @@ class HexStringTest extends TestCase
             new BinaryString("\xab\xcd\x12\x34"),
             $hexString->toBinaryString()
         );
+
+        $this->assertEquals(
+            new ImmutableBinaryString("\xab\xcd\x12\x34"),
+            $hexString->toImmutableBinaryString()
+        );
     }
 }
