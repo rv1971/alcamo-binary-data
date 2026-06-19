@@ -116,7 +116,7 @@ abstract class AbstractBinaryString implements \ArrayAccess, \Countable
      * binary string. In other words, where left-to-right numbering of bits
      * starts from. [default 0]
      */
-    public function newFromBitsSet(
+    public static function newFromBitsSet(
         $bitIndexes,
         ?int $leftmostBitIndex = null
     ): self {
